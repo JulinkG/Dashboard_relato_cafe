@@ -1,0 +1,17 @@
+{
+  "name": "dashboard-relato-cafe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Insumos y ticket de compra de Relato café, conectado al Excel de costeo",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "probar:excel": "node scripts/probar-excel.js"
+  },
+  "dependencies": {
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
+  }
+}
