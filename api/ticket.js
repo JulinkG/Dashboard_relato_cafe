@@ -1,6 +1,7 @@
 // POST /api/ticket → arma el ticket con los precios del Excel y lo envía por Resend.
 // Cuerpo: { items: [{ id, comprar, existencia }] }. Solo envía a TICKET_TO.
 import { leerInsumos, esEnLinea, nombreProveedor } from "./_excel.js";
+import { exigirSesion } from "./_sesion.js";
 
 const fmt = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 const nf = (n) => (Math.round(n * 100) / 100).toLocaleString("es-MX");
@@ -79,13 +80,17 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ error: "Método no permitido" });
   }
+  const usuario = exigirSesion(req, res);
+  if (!usuario) return;
   const key = process.env.RESEND_API_KEY;
   const para = (process.env.TICKET_TO || "").split(",").map((s) => s.trim()).filter(Boolean);
   if (!key || !para.length) {
     return res.status(500).json({ error: "Faltan RESEND_API_KEY o TICKET_TO en las variables de entorno de Vercel.", code: "config" });
   }
   const items = req.body && Array.isArray(req.body.items) ? req.body.items.slice(0, 300) : null;
-  if (!items) return res.status(400).json({ error: "El ticket llegó vacío.", code: "vacio" });
+  if (!items || !items.some((i) => Number(i && i.comprar) > 0)) {
+    return res.status(400).json({ error: "No hay nada por comprar en el ticket.", code: "vacio" });
+  }
 
   let catalogo;
   try {
